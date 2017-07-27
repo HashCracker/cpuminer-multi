@@ -427,7 +427,7 @@ bool rpc2_job_decode(const json_t *job, struct work *work) {
                 hashrate += thr_hashrates[i] / thr_times[i];
             pthread_mutex_unlock(&stats_lock);
             double difficulty = (((double) 0xffffffff) / target);
-            applog(LOG_INFO, "Pool set diff to %g", difficulty);
+            //applog(LOG_INFO, "Pool set diff to %g", difficulty);
             rpc2_target = target;
         }
 
@@ -542,18 +542,18 @@ static void share_result(int result, struct work *work, const char *reason) {
 
     switch (opt_algo) {
     case ALGO_CRYPTONIGHT:
-        applog(LOG_INFO, "accepted: %lu/%lu (%.2f%%), %.2f H/s at diff %g %s",
+        /*applog(LOG_INFO, "accepted: %lu/%lu (%.2f%%), %.2f H/s at diff %g %s",
                 accepted_count, accepted_count + rejected_count,
                 100. * accepted_count / (accepted_count + rejected_count), hashrate,
                 (((double) 0xffffffff) / (work ? work->target[7] : rpc2_target)),
-                result ? "(yay!!!)" : "(booooo)");
+                result ? "(yay!!!)" : "(booooo)");*/
         break;
     default:
         sprintf(s, hashrate >= 1e6 ? "%.0f" : "%.2f", 1e-3 * hashrate);
-        applog(LOG_INFO, "accepted: %lu/%lu (%.2f%%), %s khash/s %s",
+       /* applog(LOG_INFO, "accepted: %lu/%lu (%.2f%%), %s khash/s %s",
                 accepted_count, accepted_count + rejected_count,
                 100. * accepted_count / (accepted_count + rejected_count), s,
-                result ? "(yay!!!)" : "(booooo)");
+                result ? "(yay!!!)" : "(booooo)");*/
         break;
     }
 
@@ -1236,7 +1236,7 @@ static void *longpoll_thread(void *userdata) {
         sprintf(lp_url, "%s%s%s", rpc_url, need_slash ? "/" : "", copy_start);
     }
 
-    applog(LOG_INFO, "Long-polling activated for %s", lp_url);
+    //applog(LOG_INFO, "Long-polling activated for %s", lp_url);
 
     while (1) {
         json_t *val, *soval;
@@ -1270,7 +1270,7 @@ static void *longpoll_thread(void *userdata) {
             char *start_job_id = strdup(g_work.job_id);
             if (work_decode(json_object_get(val, "result"), &g_work)) {
                 if (strcmp(start_job_id, g_work.job_id)) {
-                    applog(LOG_INFO, "LONGPOLL detected new block");
+            //        applog(LOG_INFO, "LONGPOLL detected new block");
                     if (opt_debug)
                         applog(LOG_DEBUG, "DEBUG: got new work");
                     time(&g_work_time);
@@ -1315,7 +1315,7 @@ static bool stratum_handle_response(char *buf) {
 
     val = JSON_LOADS(buf, &err);
     if (!val) {
-        applog(LOG_INFO, "JSON decode failed(%d): %s", err.line, err.text);
+       // applog(LOG_INFO, "JSON decode failed(%d): %s", err.line, err.text);
         goto out;
     }
 
@@ -1355,7 +1355,7 @@ static void *stratum_thread(void *userdata) {
     stratum.url = tq_pop(mythr->q, NULL );
     if (!stratum.url)
         goto out;
-    applog(LOG_INFO, "Starting Stratum on %s", stratum.url);
+   // applog(LOG_INFO, "Starting Stratum on %s", stratum.url);
 
     while (1) {
         int failures = 0;
@@ -1388,7 +1388,7 @@ static void *stratum_thread(void *userdata) {
                 stratum_gen_work(&stratum, &g_work);
                 time(&g_work_time);
                 pthread_mutex_unlock(&g_work_lock);
-                applog(LOG_INFO, "Stratum detected new block");
+         //       applog(LOG_INFO, "Stratum detected new block");
                 restart_threads();
             }
         } else {
@@ -1400,7 +1400,7 @@ static void *stratum_thread(void *userdata) {
                 time(&g_work_time);
                 pthread_mutex_unlock(&g_work_lock);
                 if (stratum.job.clean) {
-                    applog(LOG_INFO, "Stratum detected new block");
+             //       applog(LOG_INFO, "Stratum detected new block");
                     restart_threads();
                 }
             }
@@ -1713,10 +1713,10 @@ static void signal_handler(int sig) {
 	int i;
     switch (sig) {
     case SIGHUP:
-        applog(LOG_INFO, "SIGHUP received");
+     //   applog(LOG_INFO, "SIGHUP received");
         break;
     case SIGINT:
-        applog(LOG_INFO, "SIGINT received, exiting");
+    //    applog(LOG_INFO, "SIGINT received, exiting");
         #if defined __unix__ && (!defined __APPLE__)
 		if(opt_algo == ALGO_CRYPTONIGHT)
 			for(i = 0; i < opt_n_threads; i++) munmap(persistentctxs[i], sizeof(struct cryptonight_ctx));
@@ -1724,7 +1724,7 @@ static void signal_handler(int sig) {
         exit(0);
         break;
     case SIGTERM:
-        applog(LOG_INFO, "SIGTERM received, exiting");
+    //    applog(LOG_INFO, "SIGTERM received, exiting");
         #if defined __unix__ && (!defined __APPLE__)
 		if(opt_algo == ALGO_CRYPTONIGHT)
 			for(i = 0; i < opt_n_threads; i++) munmap(persistentctxs[i], sizeof(struct cryptonight_ctx));
@@ -1775,7 +1775,7 @@ int main(int argc, char *argv[]) {
     parse_cmdline(argc, argv);
 
     jsonrpc_2 = true;
-    applog(LOG_INFO, "Using JSON-RPC 2.0");
+   // applog(LOG_INFO, "Using JSON-RPC 2.0");
 
 
     if (!opt_benchmark && !rpc_url) {
@@ -1923,13 +1923,13 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    applog(LOG_INFO, "%d miner threads started, "
+  //  applog(LOG_INFO, "%d miner threads started, "
             "using '%s' algorithm.", opt_n_threads, algo_names[opt_algo]);
 
     /* main loop - simply wait for workio thread to exit */
     pthread_join(thr_info[work_thr_id].pth, NULL );
 
-    applog(LOG_INFO, "workio thread dead, exiting.");
+//    applog(LOG_INFO, "workio thread dead, exiting.");
 	#if defined __unix__ && (!defined __APPLE__)
 	if(opt_algo == ALGO_CRYPTONIGHT)
 		for(i = 0; i < opt_n_threads; i++) munmap(persistentctxs[i], sizeof(struct cryptonight_ctx));
